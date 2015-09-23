@@ -1,4 +1,0 @@
-repos:
-  bash:
-    source: git@github.com:dankilman/.bash.git
-    target: ~/work/tmpconfigm/bash

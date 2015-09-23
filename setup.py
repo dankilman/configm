@@ -9,7 +9,6 @@ setup(
     description='TBD',
     zip_safe=False,
     install_requires=[
-        'argh',
         'sh',
         'path.py',
         'pyyaml'
