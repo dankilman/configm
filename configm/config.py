@@ -12,11 +12,12 @@ class Config(object):
 
     counter = 0
 
-    def __init__(self, config, config_path=None):
+    def __init__(self, config, config_path, nesting):
         Config.counter += 1
         indicator = Config.counter
+        self.nesting = nesting
         self.logger = configm.setup_logger('configm_{0}'.format(indicator),
-                                           indicator)
+                                           indicator, nesting)
         self.config_path = config_path
         self.config = copy.deepcopy(config)
         self.normalize()
@@ -28,7 +29,7 @@ class Config(object):
         for repo in self.repos.values():
             repo_config = repo['target'] / '.configm'
             if repo_config.exists():
-                config = load(repo_config)
+                config = load(repo_config, self.nesting+1)
                 config.configm()
 
     def clone(self):
@@ -91,9 +92,9 @@ class Config(object):
         return self.config['symlinks']
 
 
-def load(config):
+def load(config, nesting=0):
     if not os.path.exists(os.path.expanduser(config)):
         raise IOError('Missing configuration: {0}'.format(config))
     config_path = path(config).expanduser().abspath()
     config = config_path.text()
-    return Config(yaml.safe_load(config), config_path)
+    return Config(yaml.safe_load(config), config_path, nesting)

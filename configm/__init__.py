@@ -14,10 +14,11 @@ _log_level_color = {
 
 class Handler(logging.Handler):
 
-    def __init__(self, out, indicator):
+    def __init__(self, out, indicator, nesting):
         logging.Handler.__init__(self)
         self.out = out
         self.indicator = indicator
+        self.nesting = nesting
         self.setLevel(logging.DEBUG)
 
     def flush(self):
@@ -25,17 +26,18 @@ class Handler(logging.Handler):
 
     def emit(self, record):
         level = record.levelname[0].upper()
+        space = ' ' * self.nesting
         context = '{0}:{1}'.format(
             self.indicator,
             colors.color(level, fg=_log_level_color.get(level, 15)))
-        self.out.write('[{0}] {1}\n'
-                       .format(context, record.msg))
+        self.out.write('[{0}] {1}{2}\n'
+                       .format(context, space, record.msg))
 
 
-def setup_logger(logger_name, indicator):
+def setup_logger(logger_name, indicator, nesting):
     logger = logging.getLogger(logger_name)
     for h in logger.handlers:
         logger.removeHandler(h)
-    logger.addHandler(Handler(sys.stdout, indicator))
+    logger.addHandler(Handler(sys.stdout, indicator, nesting))
     logger.setLevel(logging.INFO)
     return logger
