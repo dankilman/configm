@@ -48,7 +48,7 @@ class Config(object):
                                          'it already exists'
                                          .format(symlink['target']))
                     else:
-                        self.logger.info('Skipping symlink creation at {0}. '
+                        self.logger.warn('Skipping symlink creation at {0}. '
                                          'It currently links to {1} instead '
                                          'of {2}'
                                          .format(symlink['target'],
