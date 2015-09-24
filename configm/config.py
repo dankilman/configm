@@ -4,7 +4,7 @@ import os
 import yaml
 from path import path
 
-import configm
+from configm import log
 from configm import git
 
 
@@ -16,8 +16,8 @@ class Config(object):
         Config.counter += 1
         indicator = Config.counter
         self.nesting = nesting
-        self.logger = configm.setup_logger('configm_{0}'.format(indicator),
-                                           indicator, nesting)
+        self.logger = log.setup_logger('configm_{0}'.format(indicator),
+                                       indicator, nesting)
         self.config_path = config_path
         self.config = copy.deepcopy(config)
         self.normalize()
