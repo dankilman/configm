@@ -9,6 +9,7 @@ setup(
     description='TBD',
     zip_safe=False,
     install_requires=[
+        'ansicolors',
         'sh',
         'path.py',
         'pyyaml'

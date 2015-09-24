@@ -1,22 +1,28 @@
-import logging
 import copy
 import os
 
 import yaml
 from path import path
 
+import configm
 from configm import git
 
 
 class Config(object):
 
+    counter = 0
+
     def __init__(self, config, config_path=None):
+        Config.counter += 1
+        indicator = Config.counter
+        self.logger = configm.setup_logger('configm_{0}'.format(indicator),
+                                           indicator)
         self.config_path = config_path
         self.config = copy.deepcopy(config)
         self.normalize()
 
     def configm(self):
-        logging.info('Processing {0}'.format(self.config_path))
+        self.logger.info('Processing {0}'.format(self.config_path))
         self.clone()
         self.symlink()
         for repo in self.repos.values():
@@ -27,16 +33,34 @@ class Config(object):
 
     def clone(self):
         for repo in self.repos.values():
-            git.clone(repo['source'], repo['target'])
+            git.clone(repo['source'], repo['target'], logger=self.logger)
 
     def symlink(self):
         for symlink in self.symlinks.values():
             if symlink['target'].exists():
-                logging.info('Skipping symlink creation at {0} as it already'
-                             ' exists'.format(symlink['target']))
+                if symlink['target'].islink():
+                    actual_target = symlink['target'].readlink()
+                    if not actual_target.isabs():
+                        actual_target = symlink[
+                            'target'].dirname() / actual_target
+                    if actual_target == symlink['source']:
+                        self.logger.info('Skipping symlink creation at {0} as '
+                                         'it already exists'
+                                         .format(symlink['target']))
+                    else:
+                        self.logger.info('Skipping symlink creation at {0}. '
+                                         'It currently links to {1} instead '
+                                         'of {2}'
+                                         .format(symlink['target'],
+                                                 actual_target,
+                                                 symlink['source']))
+                else:
+                    self.logger.warn('Skipping symlink creation at {0}. '
+                                     'It is not a link'
+                                     .format(symlink['target']))
             else:
-                logging.info('Creating symlink from {0} to {1}'
-                             .format(symlink['target'], symlink['source']))
+                self.logger.info('Creating symlink from {0} to {1}'
+                                 .format(symlink['target'], symlink['source']))
                 os.symlink(symlink['source'], symlink['target'])
 
     def normalize(self):

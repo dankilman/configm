@@ -1,4 +1,3 @@
-import logging
 import sys
 
 import sh
@@ -12,9 +11,9 @@ def bake(command):
 git = bake(sh.git)
 
 
-def clone(source, target):
+def clone(source, target, logger):
     if target.exists():
-        logging.info('Not cloning {0} as it already exists in {1}'
-                     .format(source, target))
+        logger.info('Not cloning {0} as it already exists in {1}'
+                    .format(source, target))
     else:
         git.clone(source, target).wait()
