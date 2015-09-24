@@ -1,3 +1,4 @@
+import logging
 import copy
 import os
 
@@ -15,6 +16,7 @@ class Config(object):
         self.normalize()
 
     def configm(self):
+        logging.info('Processing {0}'.format(self.config_path))
         self.clone()
         self.symlink()
         for repo in self.repos.values():
@@ -30,27 +32,31 @@ class Config(object):
     def symlink(self):
         for symlink in self.symlinks.values():
             if symlink['target'].exists():
-                continue
-            os.symlink(symlink['source'], symlink['target'])
+                logging.info('Skipping symlink creation at {0} as it already'
+                             ' exists'.format(symlink['target']))
+            else:
+                logging.info('Creating symlink from {0} to {1}'
+                             .format(symlink['target'], symlink['source']))
+                os.symlink(symlink['source'], symlink['target'])
 
     def normalize(self):
-        if 'repos' not in self.config:
-            self.config['repos'] = {}
-        if 'symlinks' not in self.config:
-            self.config['symlinks'] = {}
+        for key in ['repos', 'symlinks']:
+            if key not in self.config:
+                self.config[key] = {}
         for repo in self.repos.values():
             repo['target'] = path(repo['target']).expanduser().abspath()
-        for source in self.symlinks.keys():
-            full_source = path(source).expanduser()
-            if not full_source.exists():
-                full_source = self.config_path.dirname() / full_source
-            else:
-                full_source = full_source.abspath()
-            target = self.symlinks[source]
-            self.symlinks[source] = {
-                'source': full_source,
-                'target': path(target).expanduser().abspath()
-            }
+        for source, symlink in self.symlinks.items():
+            if isinstance(symlink, basestring):
+                symlink = {
+                    'target': symlink
+                }
+            symlink['target'] = path(symlink['target']).expanduser().abspath()
+            source_key = source
+            source = path(source).expanduser()
+            if not source.exists():
+                source = self.config_path.dirname() / source
+            symlink['source'] = source.abspath()
+            self.symlinks[source_key] = symlink
 
     @property
     def repos(self):
@@ -62,8 +68,8 @@ class Config(object):
 
 
 def load(config):
-    config_path = None
-    if os.path.exists(os.path.expanduser(config)):
-        config_path = path(config).expanduser().abspath()
-        config = config_path.text()
+    if not os.path.exists(os.path.expanduser(config)):
+        raise IOError('Missing configuration: {0}'.format(config))
+    config_path = path(config).expanduser().abspath()
+    config = config_path.text()
     return Config(yaml.safe_load(config), config_path)
