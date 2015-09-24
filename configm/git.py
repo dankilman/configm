@@ -3,12 +3,9 @@ import sys
 import sh
 
 
-def bake(command):
-    return command.bake(_out=lambda line: sys.stdout.write(line),
-                        _err=lambda line: sys.stderr.write(line))
-
-
-git = bake(sh.git)
+def bake(command, logger):
+    return command.bake(_out=lambda line: logger.info(line.strip()),
+                        _err=lambda line: logger.warn(line.strip()))
 
 
 def clone(source, target, logger):
@@ -28,4 +25,5 @@ def clone(source, target, logger):
                             'Note that current target does not point to a '
                             'valid git repository'.format(source, target))
     else:
+        git = bake(sh.git, logger)
         git.clone(source, target).wait()
