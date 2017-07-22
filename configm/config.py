@@ -2,7 +2,7 @@ import copy
 import os
 
 import yaml
-from path import path
+from path import Path as path
 
 from configm import log
 from configm import git
