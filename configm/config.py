@@ -71,7 +71,7 @@ class Config:
         for repo in self.repos.values():
             repo['target'] = path(repo['target']).expanduser().abspath()
         for source, symlink in self.symlinks.items():
-            if isinstance(symlink, basestring):
+            if isinstance(symlink, str):
                 symlink = {
                     'target': symlink
                 }
