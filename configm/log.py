@@ -27,10 +27,10 @@ class Handler(logging.Handler):
     def emit(self, record):
         level = record.levelname[0].upper()
         space = ' ' * self.nesting
-        context = '{0}:{1}'.format(
+        context = '{}:{}'.format(
             self.indicator,
             colors.color(level, fg=_log_level_color.get(level, 15)))
-        self.out.write('[{0}] {1}{2}\n'
+        self.out.write('[{}] {}{}\n'
                        .format(context, space, record.msg))
 
 
