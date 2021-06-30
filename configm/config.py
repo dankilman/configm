@@ -70,18 +70,22 @@ class Config:
                 self.config[key] = {}
         for repo in self.repos.values():
             repo['target'] = path(repo['target']).expanduser().abspath()
-        for source, symlink in self.symlinks.items():
-            if isinstance(symlink, str):
-                symlink = {
-                    'target': symlink
-                }
-            symlink['target'] = path(symlink['target']).expanduser().abspath()
-            source_key = source
-            source = path(source).expanduser()
-            if not source.exists():
-                source = self.config_path.dirname() / source
-            symlink['source'] = source.abspath()
-            self.symlinks[source_key] = symlink
+        new_symlinks = {}
+        for source, symlinks in self.symlinks.items():
+            if not isinstance(symlinks, list):
+                symlinks = [symlinks]
+            for i, symlink in enumerate(symlinks):
+                if isinstance(symlink, str):
+                    symlink = {'target': symlink}
+                symlink['target'] = path(symlink['target']).expanduser().abspath()
+                source_key = f"{source}_{i}"
+                source = path(source).expanduser()
+                if not source.exists():
+                    source = self.config_path.dirname() / source
+                symlink['source'] = source.abspath()
+                new_symlinks[source_key] = symlink
+        self.symlinks.clear()
+        self.symlinks.update(new_symlinks)
 
     @property
     def repos(self):
